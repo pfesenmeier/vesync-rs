@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use attohttpc;
+
 pub mod dto;
 pub use dto::*;
 
@@ -22,12 +24,12 @@ impl VeSync {
     pub fn get_account(account: &str, password: &str) -> Result<Self, ()> {
         let request = AccountRequest::new(account, password);
 
-        let client = reqwest::blocking::Client::new();
-        let response = client
-            .post(&build_path("/vold/user/login"))
-            .json(&request)
-            .send()
-            .map_err(|_e| ())?;
+        let response = attohttpc::post(&build_path("/vold/user/login"))
+            .json(&request) // set the request body (json feature required)
+            .map_err(|_e| ())?
+            .send() // send the request
+            .map_err(|_e| ())? // TODO: handle errors
+            ;
 
         let account: AccountResponse = response.json().map_err(|_e| ())?;
 
@@ -38,13 +40,12 @@ impl VeSync {
     }
 
     pub fn get_devices(&mut self) -> Result<&Option<Vec<dto::Device>>, ()> {
-        let client = reqwest::blocking::Client::new();
-        let response = client
-            .get(&build_path("/vold/user/devices"))
+        let response = attohttpc::get(&build_path("/vold/user/devices"))
             .header("tk", &self.account.tk)
             .header("accountid", &self.account.accountID)
-            .send()
-            .map_err(|_e| ())?;
+            .send() // send the request
+            .map_err(|_e| ())? // TODO: handle errors
+            ;
 
         let devices: Vec<dto::Device> = response.json().map_err(|_e| ())?;
 
@@ -65,13 +66,12 @@ impl VeSync {
         // `wifi-switch-1.3` also happens to match my `deviceType`, so we may want to use that here
         let path = format!("/v1/wifi-switch-1.3/{}/status/{}", device.cid, state);
 
-        let client = reqwest::blocking::Client::new();
-        let _response = client
-            .put(&build_path(&path))
+        let response = attohttpc::put(&build_path(&path))
             .header("tk", &self.account.tk)
             .header("accountid", &self.account.accountID)
-            .send()
-            .map_err(|_e| ())?;
+            .send() // send the request
+            .map_err(|_e| ())? // TODO: handle errors
+            ;
 
         Ok(())
     }

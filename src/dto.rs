@@ -30,17 +30,17 @@ pub struct AccountResponse {
 
 #[derive(Deserialize, Debug)]
 pub enum DeviceStatus {
-    #[serde(rename="on")]
+    #[serde(rename = "on")]
     On,
-    #[serde(rename="off")]
+    #[serde(rename = "off")]
     Off,
 }
 
 #[derive(Deserialize, Debug)]
 pub enum ConnectionStatus {
-    #[serde(rename="online")]
+    #[serde(rename = "online")]
     Online,
-    #[serde(rename="offline")]
+    #[serde(rename = "offline")]
     Offline,
 }
 
