@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-mod dto;
-use dto::*;
+pub mod dto;
+pub use dto::*;
 
 const BASE_URL: &str = "https://smartapi.vesync.com";
 

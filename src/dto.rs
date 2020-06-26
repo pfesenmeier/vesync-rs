@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::io::Read; // for Reqwest
 
 #[derive(Serialize, Debug)]
 pub struct AccountRequest {
@@ -31,14 +30,18 @@ pub struct AccountResponse {
 
 #[derive(Deserialize, Debug)]
 pub enum DeviceStatus {
-    on,
-    off,
+    #[serde(rename="on")]
+    On,
+    #[serde(rename="off")]
+    Off,
 }
 
 #[derive(Deserialize, Debug)]
 pub enum ConnectionStatus {
-    online,
-    offline,
+    #[serde(rename="online")]
+    Online,
+    #[serde(rename="offline")]
+    Offline,
 }
 
 #[derive(Deserialize, Debug)]
