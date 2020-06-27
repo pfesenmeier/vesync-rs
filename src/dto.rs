@@ -1,6 +1,12 @@
+// TODO: If/when nanoserde supports enums, we can switch this:
 use serde::{Deserialize, Serialize};
+// to this:
+//use nanoserde::{DeJson, SerJson};
 
+// And all of these:
 #[derive(Serialize, Debug)]
+// to this:
+//#[derive(SerJson, Debug)]
 pub struct AccountRequest {
     pub account: String,
     pub devToken: String,
@@ -30,7 +36,10 @@ pub struct AccountResponse {
 
 #[derive(Deserialize, Debug)]
 pub enum DeviceStatus {
+    // and finally, these:
     #[serde(rename = "on")]
+    // to these
+    //#[nserde(rename="on")]
     On,
     #[serde(rename = "off")]
     Off,
@@ -54,7 +63,7 @@ pub struct Device {
     pub connectionStatus: ConnectionStatus,
     pub deviceType: String,         // 'wifi-switch-1.3',
     pub model: String,              // What are the known values? 'wifi-switch',
-    pub currentFirmVersion: String, // eg, '1.99'; maybe we can convert to a number?
+    pub currentFirmVersion: String, // eg, '1.99', '2.123'; maybe we can convert to a number?
 }
 
 fn hexdigest(s: &str) -> String {

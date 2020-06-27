@@ -66,7 +66,7 @@ impl VeSync {
         // `wifi-switch-1.3` also happens to match my `deviceType`, so we may want to use that here
         let path = format!("/v1/wifi-switch-1.3/{}/status/{}", device.cid, state);
 
-        let response = attohttpc::put(&build_path(&path))
+        let _response = attohttpc::put(&build_path(&path))
             .header("tk", &self.account.tk)
             .header("accountid", &self.account.accountID)
             .send() // send the request
