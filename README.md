@@ -1,6 +1,4 @@
 # vesync-rs
-Rust crate for VeSync devices
-
 This crate lets you access and control your [VeSync](https://www.vesync.com/) smart outlets including, for example, [Etekcity smart plugs](https://smile.amazon.com/gp/product/B074GVPYPY/). You must have a VeSync account (which requires you install their iOS or Android app) in order to use this crate.
 
 ```toml
@@ -9,8 +7,7 @@ vesync-rs = "0.1"
 ```
 
 ```rust
-use vesync_rs::dto::*;
-use vesync_rs::VeSync;
+use vesync_rs::{DeviceStatus, VeSync};
 
 const VESYNC_ACCOUNT: &str = "me@example.com";
 const VESYNC_KEY: &str = "my-secret-password";
@@ -36,13 +33,10 @@ fn main() -> Result<(), ()> {
 }
 ```
 
-`vesync-rs` currently depends on `serde=1.0.51` and `reqwest=0.10`, which are fairly heavyweight, causing over 100 dependent crates to be built and taking ~1.5min to build debug.
-
 ## TODO
 [ ] Switch to [`nanoserde`](https://docs.rs/nanoserde/0.1.2/nanoserde/)
 [ ] Improve initial `vesync-rs` API
-[ ] Strengthen VeSync API (using Enums instead of Strings, whenever possible)
-
+[ ] Strengthen VeSync API types (using Enums instead of Strings, whenever possible)
 
 ## Changelog
 * Switched to [`attohttpc`](https://github.com/sbstp/attohttpc). This dropped the number of crates to build from 106 to 62 and the build time from about 1min30sec to 55sec.
