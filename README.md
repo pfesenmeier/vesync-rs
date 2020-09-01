@@ -34,10 +34,10 @@ fn main() -> Result<(), ()> {
 ```
 
 ## TODO
-[ ] Switch to [`nanoserde`](https://docs.rs/nanoserde/0.1.2/nanoserde/)
-[x] Improve initial `vesync-rs` API
-[ ] Strengthen VeSync API types (using Enums instead of Strings, whenever possible)
-[ ] Investigate brightness (dimming) API
+- [ ] Switch to [`nanoserde`](https://docs.rs/nanoserde/0.1.2/nanoserde/)
+- [x] Improve initial `vesync-rs` API
+- [ ] Strengthen VeSync API types (using Enums instead of Strings, whenever possible)
+- [ ] Investigate brightness (dimming) API
 
 ## Changelog
 * Switched to [`attohttpc`](https://github.com/sbstp/attohttpc). This dropped the number of crates to build from 106 to 62 and the build time from about 1min30sec to 55sec.
