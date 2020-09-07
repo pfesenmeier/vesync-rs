@@ -1,6 +1,5 @@
 use crate::device::VeSyncDevice;
 use attohttpc;
-//use serde_json::json;
 
 use serde::{Deserialize, Serialize};
 
@@ -25,11 +24,9 @@ impl VeSyncAccount {
             .map_err(|_e| ())? // TODO: handle errors
             ;
 
-        //let blah :bool = response;
         let response: AccountResponse = response.json().map_err(|_e| ())?;
 
         Ok(VeSyncAccount {
-            //account: response.accountID.to_string(),
             tk: response.tk.to_string(),
             accountID: response.accountID.to_string(),
         })

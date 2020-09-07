@@ -1,9 +1,12 @@
 use crate::account::VeSyncAccount;
 use serde::Deserialize;
-//use serde::{Deserialize, Serialize};
+
+const TK: &str = "tk";
+const ACCOUNTID: &str = "accountid";
 
 #[derive(Deserialize, Debug, Copy, Clone)]
-pub enum DeviceStatus {
+pub enum Status {
+    Unknown,
     #[serde(rename = "on")]
     On,
     #[serde(rename = "off")]
@@ -12,6 +15,7 @@ pub enum DeviceStatus {
 
 #[derive(Deserialize, Debug, Copy, Clone)]
 pub enum ConnectionStatus {
+    Unknown,
     #[serde(rename = "online")]
     Online,
     #[serde(rename = "offline")]
@@ -19,24 +23,42 @@ pub enum ConnectionStatus {
 }
 
 pub struct VeSyncDevice<'a> {
-    pub deviceName: String, // plaintext name of device
-    pub cid: String,        // GUID
-    pub deviceStatus: DeviceStatus,
+    pub deviceName: String,
+    pub cid: String,
+    pub deviceStatus: Status,
     pub connectionStatus: ConnectionStatus,
 
     pub account: &'a VeSyncAccount,
 }
 
 impl<'a> VeSyncDevice<'a> {
+    pub fn from_id(account: &'a VeSyncAccount, cid: &str) -> Self {
+        VeSyncDevice {
+            deviceName: String::new(),
+            cid: cid.to_string(),
+            deviceStatus: Status::Unknown,
+            connectionStatus: ConnectionStatus::Unknown,
+            account,
+        }
+    }
+
+    pub fn update(&mut self) -> Result<(), ()> {
+        let details = self.details()?;
+        self.deviceStatus = details.deviceStatus;
+
+        Ok(())
+    }
+
     pub fn get_devices(account: &'a VeSyncAccount) -> Result<Vec<VeSyncDevice>, ()> {
         let response = attohttpc::get(&crate::build_path("/vold/user/devices"))
-            .header("tk", &account.tk)
-            .header("accountid", &account.accountID)
+            .header(TK, &account.tk)
+            .header(ACCOUNTID, &account.accountID)
             .send() // send the request
             .map_err(|_e| ())? // TODO: handle errors
             ;
 
         let devices: Vec<DeviceResponse> = response.json().map_err(|_e| ())?;
+
         Ok(devices
             .iter()
             .map(|d| Self {
@@ -50,29 +72,42 @@ impl<'a> VeSyncDevice<'a> {
     }
 
     /// Turns the specified `VeSyncDevice` on. If the status is already on, nothing is done.
-    pub fn device_on(&self) -> Result<(), ()> {
+    pub fn device_on(&mut self) -> Result<(), ()> {
         match &self.deviceStatus {
-            DeviceStatus::On => Ok(()),
-            DeviceStatus::Off => self.device_put("on"),
+            Status::On => Ok(()),
+            Status::Off | Status::Unknown => {
+                self.device_put("on")?;
+                self.deviceStatus = Status::On;
+                Ok(())
+            }
         }
     }
 
     /// Turns the specified `VeSyncDevice` off. If the status is already off, nothing is done.
-    pub fn device_off(&self) -> Result<(), ()> {
+    pub fn device_off(&mut self) -> Result<(), ()> {
         match &self.deviceStatus {
-            DeviceStatus::Off => Ok(()),
-            DeviceStatus::On => self.device_put("off"),
+            Status::Off => Ok(()),
+            Status::On | Status::Unknown => {
+                self.device_put("off")?;
+                self.deviceStatus = Status::Off;
+                Ok(())
+            }
         }
     }
 
     /// Toggles the specified `VeSyncDevice`'s state
-    pub fn device_toggle(&self) -> Result<(), ()> {
+    pub fn device_toggle(&mut self) -> Result<(), ()> {
         match &self.deviceStatus {
-            DeviceStatus::On => self.device_off()?,
-            DeviceStatus::Off => self.device_on()?,
-        };
+            Status::On => self.device_off(),
+            Status::Off => self.device_on(),
+            Status::Unknown => {
+                // first get the details for this device
+                self.update()?;
 
-        Ok(())
+                // then just recurse
+                self.device_toggle()
+            }
+        }
     }
 
     fn device_put(&self, state: &str) -> Result<(), ()> {
@@ -80,8 +115,8 @@ impl<'a> VeSyncDevice<'a> {
         let path = format!("/v1/wifi-switch-1.3/{}/status/{}", self.cid, state);
 
         let _response = attohttpc::put(&crate::build_path(&path))
-            .header("tk", &self.account.tk)
-            .header("accountid", &self.account.accountID)
+            .header(TK, &self.account.tk)
+            .header(ACCOUNTID, &self.account.accountID)
             .send() // send the request
             .map_err(|_e| ())? // TODO: handle errors
             ;
@@ -89,34 +124,44 @@ impl<'a> VeSyncDevice<'a> {
         Ok(())
     }
 
-    /*
-    /// For dimming the brightness of a light - no clue what the right API is here
-    pub fn device_dim(&self, device: &VeSyncDevice, brightness: u8) -> Result<(), ()> {
-        let body = json!({
-            "uuid": device.cid,
-            "brightness": brightness,
-        });
+    pub fn details(&self) -> Result<Details, ()> {
+        let path = format!("/v1/device/{}/detail", self.cid);
+        self.query_get(&path)
+    }
 
-        let path = format!("/v1/wifi-switch-1.3/{}/updatebrightness", device.cid);
-        let path = "/dimmer/v1/device/updatebrightness";
-        let path = "/v1/device/updatebrightness";
-        let path = format!("/v1/wifi-switch-1.3/{}/brightness", device.cid);
+    pub fn energy_week(&self) -> Result<EnergyConsumption, ()> {
+        let path = format!("/v1/device/{}/energy/week", self.cid);
+        self.query_get(&path)
+    }
 
-        let _response = attohttpc::put(&path)
-            .header("tk", &self.tk)
-            .header("accountid", &self.accountID)
-            .json(&body).map_err(|_| ())? // set the request body (json feature required)
+    pub fn configurations(&self) -> Result<Configuration, ()> {
+        let path = format!("/v1/device/{}/configurations", self.cid);
+        self.query_get(&path)
+    }
+
+    fn query_get<T>(&self, path: &str) -> Result<T, ()>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        let response = attohttpc::get(&crate::build_path(&path))
+            .header(TK, &self.account.tk)
+            .header(ACCOUNTID, &self.account.accountID)
             .send() // send the request
             .map_err(|_e| ())? // TODO: handle errors
             ;
-        //r, _ = helpers.call_api(
-        //    '/dimmer/v1/device/updatebrightness',
-        //    'put',
-        //    headers=head,
-        //    json=body)
-        Ok(())
+
+        response.json().map_err(|_| ())
     }
-    */
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Details {
+    pub deviceStatus: Status,
+    pub deviceImg: String,
+    pub activeTime: u64, // ?
+    pub energy: u64,     // ?
+    pub power: f64,      // ?
+    pub voltage: f64,    // ?
 }
 
 /// Response from VeSync
@@ -125,10 +170,38 @@ struct DeviceResponse {
     pub deviceName: String, // plaintext name of device
     pub deviceImg: String,  // URL
     pub cid: String,        // GUID
-    pub deviceStatus: DeviceStatus,
+    pub deviceStatus: Status,
     pub connectionType: String, // 'wifi',
     pub connectionStatus: ConnectionStatus,
     pub deviceType: String,         // 'wifi-switch-1.3',
     pub model: String,              // What are the known values? 'wifi-switch',
     pub currentFirmVersion: String, // eg, '1.99', '2.123'; maybe we can convert to a number?
+}
+
+#[derive(Deserialize, Debug)]
+pub struct EnergyConsumption {
+    pub energyConsumptionOfToday: f32,
+    pub costPerKWH: f32,
+    pub maxEnergy: f32,
+    pub totalEnergy: f32,
+    pub currency: String,
+    pub data: Vec<f32>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Configuration {
+    pub deviceName: String,
+    pub deviceImg: String,
+    pub allowNotify: Status,
+    pub currentFirmVersion: f32,
+    pub latestFirmVersion: f32,
+    pub ownerShip: bool,
+    pub energySavingStatus: Status,
+    pub powerProtectionStatus: Status,
+    pub maxCost: u32,
+    pub costPerKWH: u32,
+    pub threshHold: u32,
+    pub maxPower: u32,
+    pub saleschannel: String,
+    pub isUpgrading: bool,
 }

@@ -1,11 +1,7 @@
 #![allow(non_snake_case)]
 
-//use attohttpc;
-//use serde_json::json;
-
-//pub mod dto;
 pub mod device;
-pub use device::{ConnectionStatus, DeviceStatus, VeSyncDevice};
+pub use device::{ConnectionStatus, Details, Status, VeSyncDevice};
 
 pub mod account;
 pub use account::VeSyncAccount;
