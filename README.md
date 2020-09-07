@@ -27,6 +27,7 @@ fn main() -> Result<(), ()> {
     match outside_light.deviceStatus {
         DeviceStatus::On => println!("Outside light is on"),
         DeviceStatus::Off => println!("Outside light is off"),
+        DeviceStatus::Unknown => println!("🤷‍♂️"), // toggle will update state, so this *should* be unreachable
     }?;
 
     Ok(())
@@ -51,11 +52,6 @@ let account = VeSyncAccount { accountID: "1234".to_string(), tk: "ABCXYZ==".to_s
 * Added ability to create `VeSyncDevice` from the account and `cid`:
 
 ```rust
-let inside_light = VeSyncDevice {
-    deviceName: "inside light".to_string(),
-    cid : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee".to_string(),
-    account: &account,
-    deviceStatus: DeviceStatus::Off,
-    connectionStatus: vesync_rs::ConnectionStatus::Online,
-};
+let mut inside_light = VeSyncDevice::from_id(&account, "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+inside_light.update();
 ```
