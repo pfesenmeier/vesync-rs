@@ -28,7 +28,7 @@ fn main() -> Result<(), ()> {
         DeviceStatus::On => println!("Outside light is on"),
         DeviceStatus::Off => println!("Outside light is off"),
         DeviceStatus::Unknown => println!("🤷‍♂️"), // toggle will update state, so this *should* be unreachable
-    }?;
+    };
 
     Ok(())
 }
