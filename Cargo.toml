@@ -1,9 +1,16 @@
 [package]
-name = "vesync-rs"
+name = "vesync"
 version = "0.1.0"
-authors = ["Adam Shirey <adam.shirey@gmail.com>"]
+authors = ["Adam Shirey <adam@shirey.ch>"]
 edition = "2018"
 
+description = "Interfaces with VeSync smart outlets"
+readme = "README.md"
+homepage = "https://github.com/aeshirey/vesync-rs/"
+repository = "https://github.com/aeshirey/vesync-rs/"
+license-file = "LICENSE"
+keywords = ["iot", "vesync"]
+categories = ["hardware-support"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -18,4 +25,3 @@ serde_json = "1.0.51"
 # https://lib.rs/crates/reqwest
 # attohttpc itself uses Serde. Switching to nanoserde should let us drop the 'json' feature in the future.
 attohttpc = { version = "0.14.0", features = ["json"] }
-#attohttpc = { version = "0.14.0" }

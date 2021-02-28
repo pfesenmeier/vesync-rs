@@ -22,6 +22,8 @@ pub enum ConnectionStatus {
     Offline,
 }
 
+
+#[derive(Debug)]
 pub struct VeSyncDevice<'a> {
     pub deviceName: String,
     pub cid: String,

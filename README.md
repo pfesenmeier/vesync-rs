@@ -3,7 +3,7 @@ This crate lets you access and control your [VeSync](https://www.vesync.com/) sm
 
 ```toml
 [depenencies]
-vesync-rs = "0.1"
+vesync = "0.1"
 ```
 
 ```rust
