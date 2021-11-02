@@ -24,4 +24,4 @@ serde_json = "1.0.51"
 
 # https://lib.rs/crates/reqwest
 # attohttpc itself uses Serde. Switching to nanoserde should let us drop the 'json' feature in the future.
-attohttpc = { version = "0.14.0", features = ["json"] }
+attohttpc = { version = "0.14.0", default-features = false, features = ["json", "compress"] }
